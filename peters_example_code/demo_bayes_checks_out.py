@@ -64,5 +64,6 @@ print 'sum(p(F, C)): {}'.format(np.sum([[p_c_f(c, f) for f in all_possible_fs] f
 table_p_x_given_c_f = np.array([[[p_x_given_c_f(x, c, f) for f in all_possible_fs] for c in all_possible_cs] for x in all_possible_xs])  # (|X|, Nc, Nd)
 print 'sum(p(X|C, F)) for each C in {}, F in {}: \n{}'.format(all_possible_cs, all_possible_fs, table_p_x_given_c_f.sum(axis=0))
 
+# Next, assert that the total joint probability sums to 1
 table_p_x_f_c = np.array([[[p_x_given_c_f(x, c, f) * p_c_f(c, f) for x in all_possible_xs] for c in all_possible_cs] for f in all_possible_fs])
 print 'sum(p(X, C, F))={}'.format(table_p_x_f_c.sum())
