@@ -6,7 +6,7 @@ Nc = 3  # Number of latent categories for non-fraudulent x
 Nf = 2  # Number of fraud states (generally 2 for 0=NoFraud, 1=Fraud)
 
 assert Nx == 2, "We currently assumen Nx==2, because we use this to generate all possible combinations of x"
-assert Nf == 2, "We currently assumen Nf==2, becausep_x_given_c_f consideres f to be boolean"
+assert Nf == 2, "We currently assumen Nf==2, because p_x_given_c_f considers f to be boolean"
 
 
 def binary_permutations(n_bits):
