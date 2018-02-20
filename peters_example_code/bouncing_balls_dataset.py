@@ -157,3 +157,4 @@ if __name__ == "__main__":
     else:
         d = load_bouncing_ball_data(n_steps=N_STEPS, resolution=RESOLUTION, n_balls = N_BALLS, n_samples = N_SAMPLES)
         print(f'Generated a shape {d.shape} array of bouncing ball data')
+ 
