@@ -3,7 +3,7 @@
 This script comes from the RTRBM code by Ilya Sutskever from 
 http://www.cs.utoronto.ca/~ilya/code/2008/RTRBM.tar
 
-Modified & Updated for Python 3.6 by Peter O'Connor
+Modified & Updated for Python 3 by Peter O'Connor
 """
 import itertools
 from typing import Union, List, Generator
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     PLOT = True
 
     if PLOT:
-        live_plot_bouncing_ball_data(n_steps = N_STEPS, resolution=30, n_balls=3, n_samples=N_SAMPLES)
+        live_plot_bouncing_ball_data(n_steps = N_STEPS, resolution=RESOLUTION, n_balls=N_BALLS, n_samples=N_SAMPLES)
     else:
         d = load_bouncing_ball_data(n_steps=N_STEPS, resolution=RESOLUTION, n_balls = N_BALLS, n_samples = N_SAMPLES)
         print(f'Generated a shape {d.shape} array of bouncing ball data')
