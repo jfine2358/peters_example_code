@@ -45,9 +45,10 @@ class ExponentialMovingAverage(object):
 
     def __call__(self, x):
         self.average = (1-decay)*self.average + decay*x
+        return self.average
 
 emu = ExponentialMovingAverage(decay=decay)
-smooth_signal_3 = list(exponential_moving_average_2(signal, decay=decay))
+smooth_signal_3 = [emu(x) for x in signal]
 assert allclose(smooth_signal_1, smooth_signal_3)
 
 
@@ -59,7 +60,9 @@ smooth_signal_4 = list(itertools.accumulate([0]+list(signal), func=partial(movin
 assert allclose(smooth_signal_1, smooth_signal_4)
 
 
-# 4) Coroutines ------------------------------------------------
+# 4) Coroutines (Steven D'Aprano) ---------------------------
+# Interesting but confusing for the uninitiated.
+
 def coroutine(func):
     """Decorator to prime coroutines when they are initialised."""
     @functools.wraps(func)
@@ -85,7 +88,7 @@ smooth_signal_5 = [aver.send(x) for x in signal]
 assert allclose(smooth_signal_1, smooth_signal_5)
 
 
-# 5) A crazy one liner from Serhiy: -------------------------------------------
+# 5) A crazy one liner from Serhiy Storchaka: -------------------------------------------
 # (nice and succinct but your coworkers might murder you)
 smooth_signal_6 = [average for average in [0] for x in signal for average in [(1-decay)*average + decay*x]]
 assert allclose(smooth_signal_1, smooth_signal_6)
