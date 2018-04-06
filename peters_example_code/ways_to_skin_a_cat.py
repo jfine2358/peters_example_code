@@ -85,7 +85,7 @@ smooth_signal_5 = [aver.send(x) for x in signal]
 assert allclose(smooth_signal_1, smooth_signal_5)
 
 
-# 5) A crazy one liner:  ------------------------------------------------
+# 5) A crazy one liner from Serhiy: -------------------------------------------
 # (nice and succinct but your coworkers might murder you)
 smooth_signal_6 = [average for average in [0] for x in signal for average in [(1-decay)*average + decay*x]]
 assert allclose(smooth_signal_1, smooth_signal_6)
