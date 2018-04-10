@@ -102,11 +102,25 @@ smooth_signal_7 = [average for average in [0] for x in signal for average in [mo
 assert allclose(smooth_signal_1, smooth_signal_7)
 
 
+# 6) Coroutines take 2 (based on suggestion from Michel Desmoulin)
+def exponential_moving_average_couroutine_2(initial=0, decay=decay):
+    average = initial
+    while True:
+        x = (yield average)
+        average = (1-decay)*average + decay*x
+
+emac2 = exponential_moving_average_couroutine_2(decay=decay)
+emac2.send(None)  # Eaccchhhchchchchchch
+smooth_signal_8 = [emac2.send(x) for x in signal]
+
+assert allclose(smooth_signal_1, smooth_signal_8)
+
+
 # ================= PROPOSED METHODS ==========================
 # (comment out below lines to actually run code)
 
 
-# 6) Peter's proposed syntax:  ------------------------------------------------
+# 7) Peter's proposed syntax:  ------------------------------------------------
 smooth_signal_8 = [average = (1-decay)*average + decay*x for x in signal from average=0]
 
 # OR, if you prefer factored out:
@@ -116,7 +130,7 @@ def moving_average_step(average, x, decay):
 smooth_signal_7 = [average = moving_average_step(average, x, decay=decay) for x in signal from average=0]
 
 
-# 6) Proposals based on statement-local-name-bindings :  ------------------------------------------------
+# 8) Proposals based on statement-local-name-bindings :  ------------------------------------------------
 
 def moving_average_step(average, x, decay):
     return (1-decay)*average + decay*x
