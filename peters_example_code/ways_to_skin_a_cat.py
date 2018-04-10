@@ -121,13 +121,13 @@ assert allclose(smooth_signal_1, smooth_signal_8)
 
 
 # 7) Peter's proposed syntax:  ------------------------------------------------
-smooth_signal_8 = [average = (1-decay)*average + decay*x for x in signal from average=0]
+smooth_signal_8 = [average := (1-decay)*average + decay*x for x in signal from average=0]
 
 # OR, if you prefer factored out:
 def moving_average_step(average, x, decay):
     return (1-decay)*average + decay*x
 
-smooth_signal_7 = [average = moving_average_step(average, x, decay=decay) for x in signal from average=0]
+smooth_signal_7 = [average := moving_average_step(average, x, decay=decay) for x in signal from average=0]
 
 
 # 8) Proposals based on statement-local-name-bindings :  ------------------------------------------------
