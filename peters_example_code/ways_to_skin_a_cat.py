@@ -6,6 +6,31 @@ from typing import Iterable
 import itertools
 from numpy import allclose
 
+
+"""
+This document was created to advocate for a new "Reduce-Map" comprehension in python.  
+See proposal: https://github.com/petered/peps/blob/master/pep-9999.rst
+The idea is to have an initialized generator with a state variable that can be updated in the loop:
+
+  (y := f(y, x) for x in xs from y=initializer)
+  
+A possible extension would be
+  
+  (z, y := f(z, x) -> y for x in iter_x from z=initial_z)
+  
+Which carries state "z" forward but only yields "y" at each iteration. 
+
+Here we use the example of an exponential moving average, which can be described mathematically as:
+
+   y[t] := (1-decay)*y[t-1] + decay*x[t]  : t in [1....], y[0]=0
+   
+The proposed Python syntax for this operation is:
+
+    smooth_signal = [y := (1-decay)*y + decay*x for x in signal from y=0]
+
+Below, we compare various existing and proposed ways of doing this in python:
+"""
+
 signal = [math.sin(i*0.01) + random.normalvariate(0, 0.1) for i in range(1000)]
 decay = 0.1
 
@@ -127,7 +152,7 @@ smooth_signal_8 = [average := (1-decay)*average + decay*x for x in signal from a
 def moving_average_step(average, x, decay):
     return (1-decay)*average + decay*x
 
-smooth_signal_7 = [average := moving_average_step(average, x, decay=decay) for x in signal from average=0]
+smooth_signal_7 = [average = moving_average_step(average, x, decay=decay) for x in signal from average=0]
 
 
 # 8) Proposals based on statement-local-name-bindings :  ------------------------------------------------
