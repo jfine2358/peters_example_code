@@ -87,13 +87,14 @@ class FunPlot2D(object):
     Plots a 2D Function using a contour plot, and updates the plot every time it is called.
     """
 
-    def __init__(self, xlims=None, ylims=None, n_points=128):
+    def __init__(self, xlims=None, ylims=None, n_points=128, n_levels=16):
 
         self.x_lims = xlims
         self.y_lims = ylims
         self.n_points = n_points
         self.h = None
         self.p = None
+        self.n_levels = n_levels
 
     def __call__(self, func):
         if self.h is not None:
@@ -106,7 +107,9 @@ class FunPlot2D(object):
         x_pts, y_pts = np.meshgrid(np.linspace(self.x_lims[0], self.x_lims[1], self.n_points), np.linspace(self.y_lims[0], self.y_lims[1], self.n_points))
         self.p = np.concatenate([x_pts[..., None], y_pts[..., None]], axis=-1).reshape(-1, 2)
         self.shape = x_pts.shape
-        self.h = plt.contour(x_pts, y_pts, func(self.p).reshape(self.shape))
+
+        vals = func(self.p)
+        self.h = plt.contour(x_pts, y_pts, vals.reshape(self.shape), levels=np.linspace(0, np.max(vals), self.n_levels))
 
 
 def demo_gaussian_mixture_em(n_samples = 1000, pause=0.3, seed=None, data_seed = 1234, n_steps=100, n_model_components = 3):
