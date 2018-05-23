@@ -82,9 +82,9 @@ def do_em(n_steps, x, n_classes, rng = None):
     q_y = normalize_to_unit_sum(rng.uniform(0, 1, size=n_classes), axis=0)  # (n_classes, )
     q_x_given_y = rng.uniform(0, 1, size=(n_classes, n_dims))  # (n_classes, n_dims)
 
-    for t in xrange(n_steps):
+    for t in range(n_steps):
 
-        print 'Step {} of {}...'.format(t, n_steps)
+        print('Step {} of {}...'.format(t, n_steps))
 
         # Note: Danger here, for numerical stability we should really be doing logsums
         delta_unnorm = q_y[None, :] * np.prod(bernoulli_pmf(q_x_given_y[None, :, :], x[:, None, :]), axis=2)    # (n_samples, n_classes)
@@ -94,7 +94,7 @@ def do_em(n_steps, x, n_classes, rng = None):
         q_x_given_y = (delta[:, :, None]*x[:, None, :]).sum(axis=0) / delta.sum(axis=0)[:, None]  # (n_classes, n_dims)
         assert np.all((0<=q_x_given_y) & (q_x_given_y<=1))
 
-    print 'EM Complete'
+    print('EM Complete')
     return q_y, q_x_given_y
 
 
@@ -145,7 +145,7 @@ def run_naive_bayes_em(n_samples=10000, n_dims=8, n_steps=100, class_weights = (
     plt.ylabel('p(y)')
 
     plt.subplot2grid(plot_sizes, (0, 1))
-    for k in xrange(n_classes):
+    for k in range(n_classes):
         plt.plot(np.arange(n_dims), p_x_given_y[k, :], label = 'p(x|y={})'.format(k))
     plt.xlabel('x-dimension')
     plt.legend()
@@ -165,7 +165,7 @@ def run_naive_bayes_em(n_samples=10000, n_dims=8, n_steps=100, class_weights = (
     plt.xlabel('y')
 
     plt.subplot2grid(plot_sizes, (1, 1))
-    for k in xrange(n_classes):
+    for k in range(n_classes):
         plt.plot(np.arange(n_dims), q_x_given_y[k, :], label = 'q(x|y={})'.format(k))
     plt.xlabel('x-dimension')
     plt.legend()

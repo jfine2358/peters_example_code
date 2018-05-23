@@ -4,7 +4,12 @@ from scipy.stats import multivariate_normal
 
 
 """
-A simple demo of using EM to train a gaussian mixture model.  
+A simple demo of using Expectation Maximization to train a Gaussian Mixture Model.  
+
+We generate a dataset and then watch the progress as the GMM learns.
+
+If you run this demo repeatedly, you will you will eventually observe some failure modes of EM (ie local maxima) and 
+instances where a component collapses onto a single point.  
 """
 
 
@@ -12,19 +17,19 @@ def get_rng(rng):
     return rng if isinstance(rng, np.random.RandomState) else np.random.RandomState(rng)
 
 
-def generate_data(means, covariances, priors, n_samples, rng=None):
+def generate_data(means, covs, priors, n_samples, rng=None):
     """
     Generate data from a gaussian mixture model
     :param Array(n_components, n_dims) means: The means for each gaussian
-    :param Array(n_components, n_dims, n_dims) covariances: The covariance matrix for each gaussian
+    :param Array(n_components, n_dims, n_dims) covs: The covariance matrix for each gaussian
     :param Array(n_components) priors: The prior on each gaussian
     :param int n_samples: Number of samples
     :param rng: Random number generator or seed
     :return Array(n_samples, n_dims): Generated data
     """
     rng = get_rng(rng)
-    assert len(means)==len(covariances)
-    distros = [multivariate_normal(mean = mu, cov=cov) for mu, cov in zip(means, covariances)]
+    assert len(means)==len(covs)
+    distros = [multivariate_normal(mean = mu, cov=cov) for mu, cov in zip(means, covs)]
     identity = rng.choice(a=len(priors), p=priors, size=n_samples)
     samples = np.array([distros[this_id].rvs(random_state=rng) for this_id in identity])
     return samples
@@ -71,12 +76,13 @@ def m_step(x, q, means, covs, priors):
     assert len(means)==len(covs)==len(priors)
 
     # M step .. We want to maximize  V = sum_i( E_{q(t_i) log p(p_x, t_i, | theta))
+    # Solving for d_V/d_mean = 0 yields
     new_means = (q[:, :, None] * x[:, None, :]).sum(axis=0) / q[:, :, None].sum(axis=0)  # (n_components, n_dims)
 
-    # And setting dV/d_sigma = 0
+    # And setting d_V/d_sigma = 0
     new_covs = [np.einsum('ni,nj->ij', delta, delta) / q[:, c].sum(axis=0) for c, mu in enumerate(new_means) for delta in [q[:, [c]]*(x - mu)]]  # (n_components, n_dims, n_dims)
 
-    # And dV/d_pi
+    # And d_V/d_pi = 0
     new_priors = q.mean(axis=0)  # (n_dims, )
 
     return new_means, new_covs, new_priors
@@ -87,38 +93,38 @@ class FunPlot2D(object):
     Plots a 2D Function using a contour plot, and updates the plot every time it is called.
     """
 
-    def __init__(self, xlims=None, ylims=None, n_points=128, n_levels=16):
+    def __init__(self, xlims=None, ylims=None, n_points=128):
 
         self.x_lims = xlims
         self.y_lims = ylims
         self.n_points = n_points
         self.h = None
         self.p = None
-        self.n_levels = n_levels
 
     def __call__(self, func):
-        if self.h is not None:
-            for coll in self.h.collections:
-                plt.gca().collections.remove(coll)
-        if self.x_lims is None:
-            self.x_lims = plt.gca().get_xlim()
-        if self.y_lims is None:
-            self.y_lims = plt.gca().get_ylim()
-        x_pts, y_pts = np.meshgrid(np.linspace(self.x_lims[0], self.x_lims[1], self.n_points), np.linspace(self.y_lims[0], self.y_lims[1], self.n_points))
-        self.p = np.concatenate([x_pts[..., None], y_pts[..., None]], axis=-1).reshape(-1, 2)
-        self.shape = x_pts.shape
+        if self.h is None:
+            if self.x_lims is None:
+                self.x_lims = plt.gca().get_xlim()
+            if self.y_lims is None:
+                self.y_lims = plt.gca().get_ylim()
+            x_pts, y_pts = np.meshgrid(np.linspace(self.x_lims[0], self.x_lims[1], self.n_points), np.linspace(self.y_lims[0], self.y_lims[1], self.n_points))
+            self.p = np.concatenate([x_pts[..., None], y_pts[..., None]], axis=-1).reshape(-1, 2)
+            self.shape = x_pts.shape
+            vals = func(self.p)
+            self.h = plt.pcolor(x_pts, y_pts, vals.reshape(self.shape), zorder=0.5)
+        else:
+            v = func(self.p).reshape(self.shape)
+            self.h.set_array((v[:-1, :-1]+v[1:, :-1]+v[1:, 1:]+v[:-1, 1:]).ravel()/4)
 
-        vals = func(self.p)
-        self.h = plt.contour(x_pts, y_pts, vals.reshape(self.shape), levels=np.linspace(0, np.max(vals), self.n_levels))
 
-
-def demo_gaussian_mixture_em(n_samples = 1000, pause=0.3, seed=None, data_seed = 1234, n_steps=100, n_model_components = 3):
+def demo_gaussian_mixture_em(n_samples = 1000, pause=0, seed=None, data_seed = 1234, n_steps=100, n_model_components = 3):
     """
     Generate data from pre-defined gaussian mixture, and then infer the parameters of this mixture again.
 
     :param n_samples: Number of data samples
     :param pause: Time to pause plot (in seconds) between iterations
     :param seed: Random Seed, a number or None to randomize.  1234 shows good behaviour, 1237 shows pathalogical behaviour
+    :param data_seed: Random seed for generating data
     :param n_steps: Number of iterations to run for
     :param n_model_components: Number of components to use in model (generating model always has 3)
     """
@@ -126,7 +132,7 @@ def demo_gaussian_mixture_em(n_samples = 1000, pause=0.3, seed=None, data_seed =
     true_means = [(2, 2), (-1, 0), (2, -3)]
     true_covs = [[0.5, -0.3], [-0.3, 0.5]], [[0.5, 0], [0, 0.5]], [[1, .6], [.6, 1]]
     true_prior = .3, .5, .2
-    x = generate_data(means=true_means, covariances=true_covs, priors= true_prior, n_samples = n_samples, rng=data_seed)
+    x = generate_data(means=true_means, covs=true_covs, priors= true_prior, n_samples = n_samples, rng=data_seed)
 
     n_dims = x.shape[1]
 
@@ -136,7 +142,7 @@ def demo_gaussian_mixture_em(n_samples = 1000, pause=0.3, seed=None, data_seed =
     prior = np.ones(n_model_components)/float(n_model_components)
 
     # Plot the
-    plt.scatter(x[:, 0], x[:, 1])
+    plt.scatter(x[:, 0], x[:, 1], s=3, c='k')
     plt.grid()
     plotter = FunPlot2D()
 
@@ -145,7 +151,7 @@ def demo_gaussian_mixture_em(n_samples = 1000, pause=0.3, seed=None, data_seed =
         logp = mean_log_likelihood(x, means, covs, prior)
         plt.title('Step {}.  Mean Log Likelihood = {:.4g}'.format(i, logp))
 
-        plt.pause(pause)
+        plt.pause(pause+1e-5)
         q = e_step(x, means, covs, prior)
         means, covs, prior = m_step(x, q, means, covs, prior)
 
