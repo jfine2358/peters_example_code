@@ -18,11 +18,11 @@ def deferrable_args(func):
     @wraps(func)
     def defer_args(*args, **kwargs):
 
-        overridden_args = sig.bind(*args, **kwargs)
-        for k, v in overridden_args.arguments.items():
+        overridden_args = sig.bind(*args, **kwargs).arguments
+        for k, v in overridden_args.items():
             if v is deferred:
-                overridden_args.arguments[k] = sig.parameters[k].default
+                overridden_args[k] = sig.parameters[k].default
 
-        return func(**overridden_args.arguments)
+        return func(**overridden_args)
 
     return defer_args
