@@ -3,6 +3,8 @@ from functools import wraps
 
 deferred = object()
 
+# An implementation of the deferrable args wrapper suggested by Jonathon Fine
+
 
 def deferrable_args(func):
     """
