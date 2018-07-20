@@ -10,7 +10,7 @@ def deferrable_args(func):
     """
     Use this to decorate a function that you want to accept "defer" arguments, which will be overwritten by defaults.
     :param func: A function
-    :return: A function with the same signature, which will will defer
+    :return: A function with the same signature, which will swaps in defaults for deferred arguments then calls func
     """
 
     sig = inspect.signature(func)
